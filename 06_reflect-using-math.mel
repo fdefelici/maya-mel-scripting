@@ -1,0 +1,93 @@
+/* 
+	OBJECTIVE
+ 	Mirror objects taking into account that they could be nested in some groups. Grouping hierarchy must be preserved.
+    Solution based on Maths calculation
+*/
+ 
+/* TEST UTILS */
+proc del() {
+    select -all;
+    delete;
+}
+
+proc scenario_succ1() {
+    polyCube;
+    move -a -7 1 0;
+    rotate -r -ws -fo 0 20 10;
+}
+
+proc scenario_succ2() {
+    polyCube -n "cub1";
+    move -a -5 5 0;
+    group;
+    select "cub1";
+}
+
+/* 
+   Caso critico in cui "cub2" 
+   ha il gruppo radice ("group2") che si
+   chiama come un gruppo di "cub1".
+*/
+proc scenario_succ3() {
+   polyCube -n "cub1";
+   move -a -5 5 0;     
+   group -n "group1" "cub1";
+   group -n "group2" "cub1";;
+   
+   polyCube -n "cub2";
+   move -a -7 1 0;    
+   group -n "group2" "cub2";
+   
+   select "cub1" "cub2";
+}
+
+proc scenario_succ4() {
+   polyCube -n "cub1";
+   move -a -5 5 0;     
+   group -n "group1" "cub1";
+   group -n "group2" "cub1";;
+   
+   polyCube -n "cub2";
+   move -a -7 1 0;    
+   group -n "group3" "cub2";
+   group -n "group2" "cub2";
+   
+   select "cub1" "cub2";
+}
+
+/* PROGRAM */
+proc reflect() {
+    string $sel[] = `ls -os -fl`;
+    if (size($sel) == 0 ){
+        print "Error: You need to select at least 1 object";
+        return;
+    } 
+    
+    
+	vector $point = <<0,0,0>>;
+    /* Exec Mirroring */ 
+    for($each in $sel) {
+		vector $pos = `xform -q -t -ws $each`;
+		vector $rot = `xform -q -ro -ws $each`;
+		
+		vector $diff = $point - $pos;
+		vector $dist = $diff * 2;
+		vector $newPos = $pos + $dist;
+		//move -a ($newPos.x) ($newPos.y) ($newPos.z) "cub1"; 
+		move -a ($newPos.x) ($pos.y) ($pos.z) $each; 
+		rotate -r -ws -fo ($rot.x *-2.0) ($rot.y *-2.0) ($rot.z *-2.0) $each;
+    }
+        
+    select $sel;
+}
+
+reflect;
+
+
+scenario_succ1;
+scenario_succ2;
+scenario_succ3;
+scenario_succ4;
+
+del;
+

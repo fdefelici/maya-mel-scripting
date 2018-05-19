@@ -1,0 +1,61 @@
+/*
+	OBJECTIVE
+	Allow renaming selected objects by the user through UI, using pattern.
+*/
+
+proc clean() {
+    select -all;
+    delete;
+}
+
+proc scenario_succ1() {
+    polyCube -n "cub1";
+    polyCube -n "cub2";
+    polyCube -n "cub3";
+}
+
+proc renameAll(string $pattern) {
+    string $sel[] = `ls -os`;
+    
+    for($i=0; $i<size($sel); ++$i) {
+        string $current = $sel[$i];
+        //string $newName;
+        if (`gmatch $pattern "*#*"`) {
+            string $val = $i;
+            string $newName = `substitute "#" $pattern $val`;
+            print ("[" + $newName + "]");
+            rename $current $newName;
+        } else { 
+            string $newName = $pattern + $i;
+            rename $current $newName;
+        }
+
+    }
+}
+
+
+proc main() {
+    window -t "RandTool" "win";
+    columnLayout;
+        textField "patTxt";
+        button -l "Rename" -c "renameListner" "rndBtn";
+    setParent..;
+
+    showWindow;
+}
+
+proc renameListner() {
+  string $pattern = `textField -q -text "patTxt"`;
+  renameAll($pattern);  
+}
+
+
+scenario_succ1;
+
+
+//renameAll("newName");
+
+main;
+
+
+clean;

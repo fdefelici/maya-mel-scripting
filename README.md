@@ -1,2 +1,4 @@
 # maya-mel-scripting
-Scripting for Maya using MEL language
+Useful scripts for Maya written in MEL language.
+
+A description could be found within each script, reporting the objective.

@@ -1,0 +1,63 @@
+/*
+    OBJECTIVE
+    Script which can generate a chain given a mesh (as ring chaing) following the shape of a curve
+*/
+
+proc createChain() {
+    //CreatePolygonTorus;
+    polyTorus -r 1 -sr 0.5 -tw 0 -sx 6 -sy 6 -ax 0 1 0 -cuv 1 -ch 1;
+    select -r -sym pTorus1.vtx[0] pTorus1.vtx[4:6] pTorus1.vtx[10:12] pTorus1.vtx[16:18] pTorus1.vtx[22:24] pTorus1.vtx[28:30] pTorus1.vtx[34:35]
+   // move -r 0.500576 0 0 ;
+    select -r -sym pTorus1.vtx[1:3] pTorus1.vtx[7:9] pTorus1.vtx[13:15] pTorus1.vtx[19:21] pTorus1.vtx[25:27] pTorus1.vtx[31:33] ;
+   // move -r -0.45987 0 0 ;
+}
+
+proc float widthOnZ(string $obj) {
+    //Oppure fancedo getAttr su boundingBoxMinX e boundingBoxMaxX
+    float $bbox[] = `exactWorldBoundingBox $obj`;
+    //print $bbox;
+    float $len = $bbox[3] - $bbox[0];
+    return $len;
+}
+
+proc replicate() {
+    string $sel[] = `ls -os`;
+    if (size($sel)!=2) {
+        return;
+    }
+   
+    string $obj = $sel[0];
+    string $curve = $sel[1];
+    
+    string $pathName = `pathAnimation -fractionMode true -follow true -followAxis x -upAxis y -worldUpType "vector" -worldUpVector 0 1 0 -inverseUp false -inverseFront false -bank false -startTimeU 1 -endTimeU 120`;
+    
+    float $width = `widthOnZ $obj`;
+    $width = $width * 0.5;
+    
+    float $curveLen = `arclen $curve`;
+    float $numClonesFloat = $curveLen / $width;
+    int $numClones = $numClonesFloat;
+    print $numClones;
+    
+    for($i=0; $i<$numClones; ++$i) {
+        setAttr ($pathName+".uValue") ((1.0/ $numClones) * $i );
+        // FORZARE LA POSIZIONE DELLA SFERA
+        /* Facendo questa query forzo l'engine di animation ad aggiornare la posizione della sfera sulla curva */    
+        xform -q -ws -t $obj;       
+        string $clones[] = `duplicate $obj`;
+                
+        int $mod = $i%2;
+        //se disparo ruoto
+        if ($mod == 1) {
+            float $rotX = `rand 10 90`;
+            rotate -r -os -fo $rotX 0 0 $clones[0];
+        }
+          
+    }
+}
+
+createChain;
+select -r "pTorus1" "curve2";
+
+replicate;
+

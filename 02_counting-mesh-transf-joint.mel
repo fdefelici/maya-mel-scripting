@@ -1,0 +1,29 @@
+/*
+    OBJECTIVE
+	Make a copy of the script above and modify the copy so that it now prints
+    how many joints are selected, how many meshes are selected and how many transforms
+    are selected.
+*/
+
+proc exercise4() {
+    polyCube -n "cub0";
+    polyCube -n "cub1";
+    move -a 5 0 0 "cub1";
+
+    select -clear;
+    select -all;
+
+    string $meshes[] = `ls -sl -type mesh`;
+    string $transf[] = `ls -sl -type transform`;
+    string $joints[] = `ls -sl -type joint`;
+
+    print ("Meshes: " + size($meshes) + "\n");
+    print ("Transf: " + size($transf) + "\n");
+    print ("Joints: " + size($joints) + "\n");
+}
+
+
+exercise4;
+
+select -all;
+delete;

@@ -1,0 +1,28 @@
+/* OBJECTIVE
+   Given a curve and an object, fill the curve with clone of the objects.
+*/
+
+proc replicate() {
+    string $sel[] = `ls -os`;
+    if (size($sel)!=2) {
+        return;
+    }
+   
+    string $obj = $sel[0];
+    string $curve = $sel[1];
+    string $pathName = `pathAnimation -fractionMode true -follow true -followAxis x -upAxis y -worldUpType "vector" -worldUpVector 0 1 0 -inverseUp false -inverseFront false -bank false -startTimeU 1 -endTimeU 120`;
+    
+    float $width = 2;
+    float $curveLen = `arclen $curve`;
+    float $numClonesFloat = $curveLen / $width;
+    int $numClones = $numClonesFloat;
+    
+    for($i=0; $i<$numClones; ++$i) {
+        setAttr ($pathName+".uValue") ((1.0/ $numClones) * $i );
+        // Force animation engine to udpdate object position on the curve
+        xform -q -ws -t $obj;       
+        duplicate $obj;
+    }
+}
+
+replicate;

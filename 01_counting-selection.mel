@@ -1,0 +1,27 @@
+/*
+    OBJECTIVE
+	Write a script that based on selection will print how many objects / nodes the user
+    has selected.
+*/
+
+proc exercise3() {
+    polyCube -n "cub0";
+    polyCube -n "cub1";
+    polyCube -n "cub2";
+    polyCube -n "cub3";
+    move -a 5 0 0 "cub1";
+
+    select -clear;
+    select -all;
+
+    string $selection[] = `ls -sl`;
+
+
+    print ("Current selection> " + size($selection) );
+}
+
+
+exercise3;
+
+select -all;
+delete;

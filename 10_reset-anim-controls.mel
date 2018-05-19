@@ -1,0 +1,36 @@
+/*
+	OBJECTIVE
+	Resetting animation controls to return to the origina settings
+*/
+
+proc reset() {
+    string $controls[] = `ls -type "nurbsCurve" "*_fk_*" "*_ac_*"`;
+    for($eachShape in $controls) {
+        string $parent = `firstParentOf($eachShape)`;
+        //attributi base
+        string $defaultAttrs[] = `listAttr -keyable $parent`;        
+        for ($eachAttr in $defaultAttrs) {
+            if (`gmatch $eachAttr "translate*"`) 
+                setAttr ($parent +"."+$eachAttr) 0;
+            else if (`gmatch $eachAttr "rotate*"`) 
+                setAttr ($parent +"."+$eachAttr) 0;
+            else if (`gmatch $eachAttr "scale*"`) 
+                setAttr ($parent +"."+$eachAttr) 1;
+
+        }
+        
+        //attributi user defined
+        string $userAttrs[] = `listAttr -k -ud $parent`;
+        for ($eachAttr in $userAttrs) {
+            string $pointer = $parent+"."+$eachAttr;
+            //setAttr ($parent+"."+$eachAttr) `addAttr -q -dv ($parent+"."+$eachAttr)`;
+             //query per prendere defaul value dell'attributo
+            float $defaultValue = `addAttr -q -dv $pointer`;
+            setAttr $pointer $defaultValue;
+           
+        }
+    }
+    
+}
+
+reset;

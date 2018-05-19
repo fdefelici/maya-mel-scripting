@@ -1,0 +1,110 @@
+/* 
+	OBJECTIVE
+	Mirror objects taking into account that they could be nested in some groups. Grouping hierarchy must be preserved.
+  Solution based on Group scale invertion (-1 on the axis scale)
+*/
+ 
+/* TEST UTILS */
+proc del() {
+    select -all;
+    delete;
+}
+
+proc scenario_succ1() {
+    polyCube;
+    move -a -7 1 0;
+}
+
+proc scenario_succ2() {
+    polyCube -n "cub1";
+    move -a -5 5 0;
+    group;
+    select "cub1";
+}
+
+/* 
+   Caso critico in cui "cub2" 
+   ha il gruppo radice ("group2") che si
+   chiama come un gruppo di "cub1".
+*/
+proc scenario_succ3() {
+   polyCube -n "cub1";
+   move -a -5 5 0;     
+   group -n "group1" "cub1";
+   group -n "group2" "cub1";;
+   
+   polyCube -n "cub2";
+   move -a -7 1 0;    
+   group -n "group2" "cub2";
+   
+   select "cub1" "cub2";
+}
+
+proc scenario_succ4() {
+   polyCube -n "cub1";
+   move -a -5 5 0;     
+   group -n "group1" "cub1";
+   group -n "group2" "cub1";;
+   
+   polyCube -n "cub2";
+   move -a -7 1 0;    
+   group -n "group3" "cub2";
+   group -n "group2" "cub2";
+   
+   select "cub1" "cub2";
+}
+
+/* PROGRAM */
+proc string parentChainFor(string $obj) {
+    string $chain[] = `listRelatives -f $obj`;
+    if (size($chain)==0) return "";
+    
+    string $array[] = stringToStringArray($chain[0], "|");
+    string $result = "";
+    for($each in $array) {
+        if ($each == $obj) return $result;
+        $result += ("|" + $each);
+    }
+    return $result;
+}
+
+proc reflect() {
+    string $sel[] = `ls -os -fl`;
+    if (size($sel) == 0 ){
+        print "Error: You need to select at least 1 object";
+        return;
+    } 
+    
+    /* Save original parent */  
+    string $parents[];
+    for($i=0; $i<size($sel); ++$i) {
+     	$parents[$i] = parentChainFor($sel[$i]);
+    }
+
+    /* Exec Mirroring */          
+    string $groupName = `group -em`;
+    parent $sel $groupName;
+    setAttr ($groupName+".scaleX") -1;
+    ungroup $groupName;
+    
+    /* Re-attach to original parent */  
+    for($i=0; $i<size($sel); ++$i) {
+     	string $base = $parents[$i];
+     	if ($base != "") {
+     		parent $sel[$i] $base;
+     	}
+    }
+        
+    select $sel;
+}
+
+reflect;
+
+
+scenario_succ1;
+scenario_succ2;
+scenario_succ3;
+scenario_succ4;
+
+del;
+

@@ -1,0 +1,100 @@
+/*
+    OBJECTIVE
+	Write a script that will create 3 polySpheres and 3 polyCubes.
+	The 3 polySphere should be place 5 units from each other in X. but not moved in Y or Z.
+	The 3 polyCubes should be on top of the spheres in the viewport (3 units above)
+	The first cube should have a red lambert material assigned to it,
+	The second cube should have a green lambert material assigned to it
+	The third cube should have a blue blinn material assigned to it.
+*/
+
+
+/*
+   Append elements of an array '$toAppend' to another '$result'
+*/
+proc array_append(string $toAppend[], string $result[]) {
+   for($each in $toAppend) {
+       $result[size($result)] = $each;
+   }    
+}
+
+/*
+   Delete all objects passed as param
+*/
+proc clean(string $objects[]) {
+   for($each in $objects) {
+       delete $each;
+   }    
+}
+
+/*
+   Add Material of type '$matType' of color '$color' to object '$obj'
+*/
+proc string[] addMaterial(string $obj, float $color[], string $matType) {
+    string $matName = $obj + "_" + $matType;
+    string $shadName = $matName + "_GS";
+        
+    shadingNode -n $matName -asShader $matType;
+    sets -renderable true -noSurfaceShader true -empty -name $shadName;
+    connectAttr -f ($matName + ".outColor") ($shadName+".surfaceShader");
+    setAttr ($matName + ".color") -type double3 $color[0] $color[1] $color[2] ;
+    
+    select -r $obj;
+    hyperShade -assign $matName;
+
+    string $createdObjects[];
+    $createdObjects[0] = $matName;
+    $createdObjects[1] = $shadName;
+    return $createdObjects;
+}
+
+
+
+proc string[] execExercise1() {
+
+    string $objects[];
+    int $objIndex = 0;
+    
+    // Create 3 sphere at 5 distance on X axis from each other
+    float $ray = 1;
+    for($i=0; $i<3; ++$i) {
+        string $name = "sph"+$i;
+        float $xPos = $ray/2.0 + 5.0*$i;
+        polySphere -n $name -r $ray;
+        move -a $xPos 0 0 $name;
+        $objects[$objIndex++] = $name;
+    }
+    
+    // Create 3 cube over the sphere at 3 distance on Y axis
+    float $size = 1;
+    for($i=0; $i<3; ++$i) {
+        string $name = "cub"+$i;
+        float $xPos = $ray/2.0 + 5.0*$i;
+        float $yPos = $ray/2.0 + 3.0;
+        polyCube -n $name -h $size -d $size -w $size;
+        move -a $xPos $yPos 0 $name;
+        $objects[$objIndex++] = $name;
+    }
+
+
+    // Add material to each cube
+    float $red[] = {1, 0, 0};
+    float $green[] = {0, 1, 0};
+    float $blue[] = {0, 0, 1};
+    
+    string $createdObjs0[] = `addMaterial "cub0" $red "lambert"`;
+    array_append($createdObjs0, $objects);    
+    string $createdObjs1[] = `addMaterial "cub1" $green "lambert"`;
+    array_append($createdObjs1, $objects);    
+    string $createdObjs2[] = `addMaterial "cub2" $blue "blinn"`;
+    array_append($createdObjs2, $objects);
+
+    return $objects;
+}
+
+
+string $objects[] = `execExercise1`;
+
+clean($objects);
+
+

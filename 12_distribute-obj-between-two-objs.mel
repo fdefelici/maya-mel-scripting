@@ -1,0 +1,58 @@
+/*
+ * OBJECTIVE
+ * Procedure that taken 4 arguments: 3 strings (objA, objB, objC) and 1 int x_number
+ * when running the proc, objC should get duplicated x_number of times 
+ * and be distributed evenly in a line between objA and objB.
+ */
+
+proc clean() {
+    select -all;
+    delete;
+}
+
+
+proc scenario1() {
+    polyCube -n "objA";
+    move -a -5 0 0;
+    
+    polyCube -n "objB";
+    move -a 5 0 0;
+    
+    polySphere -n "objC";
+    move -a 0 0 5;
+}
+
+proc scenario2() {
+    polyCube -n "objA";
+    move -a -5 5 0;
+    
+    polyCube -n "objB";
+    move -a 5 0 0;
+    
+    polySphere -n "objC";
+    move -a 0 0 5;
+}
+
+proc distribute(string $objA, string $objB, string $objC, int $numReps) {
+    vector $posA = `xform -q -t -ws $objA`;
+    vector $posB = `xform -q -t -ws $objB`;
+    
+    vector $diffAB = $posB - $posA;
+    vector $dirAB = `unit $diffAB`;
+    float $lenghtAB = `mag($diffAB)`;
+    
+    //+1 per escludere un estremo dal conteggio
+    float $interval = $lenghtAB / ($numReps+1);    
+    for($i=0; $i<$numReps; ++$i) {
+        string $clones[] = `duplicate $objC`;        
+        //+1 per evitare di collidere con objA
+        vector $point = $posA + $dirAB * ($i+1)*$interval;
+        move -a ($point.x) ($point.y) ($point.z) $clones[0];
+    }
+
+}
+
+scenario1;
+scenario2;
+distribute("objA", "objB", "objC", 3);
+clean;

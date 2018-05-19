@@ -1,0 +1,59 @@
+/* 
+    OBJECTIVE
+    The script clones objects selected by the user and randomize the position, rotation and scale 
+    So for example if you have 100 boxes aligned in a 10 by 10 grid formation, the user should be able to pick and choose by
+    selecting in the viewport which of those boxes should get randomized.
+    It could be with a UI and a randomize button if you want, but its not a requirement.
+*/
+
+
+proc del() {
+    select -all;
+    delete;
+}
+
+proc scenario_succ1() {
+    for($i=0; $i<5; ++$i) {
+        for($j=0; $j<5; ++$j) {
+            polyCube -n ("cub"+$i+"_"+$j);
+            move -a ($i*2) 0 ($j*2);
+        }    
+    }
+    select -cl;
+    select "cub1_1" "cub2_2" "cub3_3";
+}
+
+proc randomizeSelection() {
+    string $sel[] = `ls -os -fl`;
+    
+    for($each in $sel) {
+        /* random position */
+        vector $pos = `rand <<0,3,0>> <<5,5,5>>`;    
+        move -a ($pos.x) ($pos.y) ($pos.z) $each;        
+        /* random rotation */
+        vector $rot = `rand <<0,0,0>> <<360,360,360>>`;    
+        rotate -r -ws -fo ($rot.x) ($rot.y) ($rot.z) $each;    
+        /* random scaling  */
+        float $sca = `rand 1 4`;
+        scale -a $sca $sca $sca $each;        
+    }
+    
+    select -cl;
+    select $sel;
+}
+
+proc main() {
+    window -t "RandTool" "win";
+    columnLayout;
+        button -l "Randomize!" -c "randomizeSelection" "rndBtn";
+    setParent..;
+
+    showWindow;
+}
+
+
+scenario_succ1;
+
+main;
+
+del;
